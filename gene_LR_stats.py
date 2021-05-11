@@ -14,21 +14,21 @@ data_header=list(genes_df.columns)
 data_header.append('ROI_loading')
 data_df=pd.DataFrame(columns=data_header) # create a new dataframe to store the ROI loading on latent variable map, for each associated roi id
 
-for roi_idx in range(genes_df.shape[0]): #will iterate through the different roi with their associated gene expression
-    roi_id=genes_df['structure_id'][roi_idx] #get the roi id
-    roi_loading=roi_dict[str(roi_id)] #get the latent variable loading for the roi 
+for roi_id in list(roi_dict.keys()): #will iterate through the different roi with their associated gene expression
+    roi_loading=roi_dict[roi_id] #get the latent variable loading for the roi
+    roi_idx=np.where(genes_df['structure_id']==int(roi_id))[0][0]
     roi_data=list(genes_array[roi_idx, :]) #make a list with gene expression values for that given roi
     roi_data.append(roi_loading) #add the roi loading to the list
     array=np.empty([1, len(data_header)]) #need to transform the data to a rowxcolumn array to create a DataFrame
     array[0,:]=np.asarray(roi_data) #insert the data for that roi into the array
     nan_idx=np.where(np.isnan(array)) #get index where there is no gene expression values (with 'nan' values)
     array[nan_idx]=0 #set these values to 0, since linear regression probably won't work with 'nan' values
-    roi_df=pd.DataFrame(array, index=[1], columns=data_header) #create a data frame with a single row, representing gene expression/latent variable loading data for the given ROI 
+    roi_df=pd.DataFrame(array, index=[1], columns=data_header) #create a data frame with a single row, representing gene expression/latent variable loading data for the given ROI
     data_df=data_df.append(roi_df) #append the roi info to the overall DataFrame
 
 '''
 Evaluate p-values for all genes with univariate linear regression
-'''    
+'''
 import statsmodels.api as sm
 
 stat_dict={}
@@ -70,10 +70,8 @@ sorted_t_values=t_values_array[sort_index]
 sorted_p_values=p_values_array[sort_index]
 sorted_gene_names=gene_names_array[sort_index]
 
-sorted_t_values[:9546]
-
 data=np.asarray([sorted_gene_names, sorted_p_values]).transpose() #convert the two vector to a single array, and transpose to proper dimensions to create a Dataframe
 
 #Create Dataframe with one column for the gene name, and one column for the associated p-value, where the first values are the most significant negative associations and last are the most significant positive associations
-df = pd.DataFrame(data, columns = ['Gene Name', 'p-values']) 
+df = pd.DataFrame(data, columns = ['Gene Name', 'p-values'])
 df.to_csv('LV_gene_associations.csv')
