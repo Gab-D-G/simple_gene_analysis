@@ -16,7 +16,10 @@ data_df=pd.DataFrame(columns=data_header) # create a new dataframe to store the 
 
 for roi_id in list(roi_dict.keys()): #will iterate through the different roi with their associated gene expression
     roi_loading=roi_dict[roi_id] #get the latent variable loading for the roi
-    roi_idx=np.where(genes_df['structure_id']==int(roi_id))[0][0]
+    try:
+        roi_idx=np.where(genes_df['structure_id']==int(roi_id))[0][0]
+    except:
+        continue
     roi_data=list(genes_array[roi_idx, :]) #make a list with gene expression values for that given roi
     roi_data.append(roi_loading) #add the roi loading to the list
     array=np.empty([1, len(data_header)]) #need to transform the data to a rowxcolumn array to create a DataFrame
